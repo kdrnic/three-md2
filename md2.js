@@ -56,10 +56,10 @@ function MD2Model(fileName)
 	this.glCmds = [];
 	this.frames = [];
 	
-	if(typeof(fileName) == "string") this.load(fileName);
+	if(typeof(fileName) == "string") this.Load(fileName);
 }
 
-MD2Model.prototype.load = function (url)
+MD2Model.prototype.Load = function (url)
 {
 	// Code from https://developer.mozilla.org/En/Using_XMLHttpRequest#Receiving_binary_data
 	function LoadBinaryResource(url)

@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<script src="three.min.js"></script>
+		<script src="jdataview.js"></script>
+		<script src="md2.js"></script>
+		<script src="TrackballControls.js"></script>
+		<script>
+function LoadBinaryResource(url, callback)
+{
+	var request = new XMLHttpRequest();
+	request.open('GET', url, true);
+	request.overrideMimeType('text/plain; charset=x-user-defined');
+	request.send(null);
+	request.callback = callback;
+	request.onreadystatechange = function()
+	{
+		if((this.readyState == 4) && (this.status == 200)) this.callback(this.responseText);
+	}
+}
+
+function Start()
+{
+	var f = LoadBinaryResource("file.txt", function(f)
+	{
+	alert("File loaded. Length: " + f.length);
+	document.write(f);
+	});
+}
+		</script>
+	</head>
+	<body onload="Start()">
+	</body>
+</html>
