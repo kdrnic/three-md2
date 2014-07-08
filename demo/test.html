@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<script src="three.min.js"></script>
+		<script src="jdataview.js"></script>
+		<script src="md2.js"></script>
+		<script src="TrackballControls.js"></script>
+		<script>
+function Start()
+{
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(75, 640/480, 0.1, 1000);
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(640, 480);
+	document.body.appendChild(renderer.domElement);
+	clock = new THREE.Clock();
+	
+	model = new MD2Model("marine.md2");
+	geometry = model.GetGeometry();
+	geometry.computeFaceNormals();
+	geometry.computeBoundingSphere();
+	texture = THREE.ImageUtils.loadTexture("marine.png");
+	texture.needsUpdate = true;
+	material = new THREE.MeshBasicMaterial({map: texture, morphTargets: true,}); // Important: must set morphTargets to true
+	mesh = new THREE.MorphAnimMesh(geometry, material);
+	mesh.parseAnimations();
+	scene.add(mesh);
+	mesh.playAnimation(mesh.geometry.firstAnimation, 12);
+	
+	camera.position.copy(mesh.position);
+	camera.position.add(new THREE.Vector3(0, 75, 75));
+	camera.lookAt(mesh.position);
+	
+	controls = new THREE.TrackballControls(camera, renderer.domElement);
+	controls.rotateSpeed = 1.0;
+	controls.zoomSpeed = 1.2;
+	controls.panSpeed = 0.8;
+	controls.noZoom = false;
+	controls.noPan = false;
+	controls.staticMoving = true;
+	controls.dynamicDampingFactor = 0.3;
+	controls.keys = [65, 83, 68];
+	
+	document.body.appendChild(document.createElement("br"));
+	label = document.body.appendChild(document.createElement("label"));
+	label.setAttribute("for", "animationSelector");
+	label.innerHTML = "Select animation:";
+	animationSelector = document.createElement("select");
+	animationSelector.setAttribute("id", "animationSelector");
+	document.body.appendChild(animationSelector);
+	for(var a in mesh.geometry.animations)
+	{
+		var option = document.createElement("option");
+		option.setAttribute("value", a);
+		option.innerHTML = a;
+		animationSelector.appendChild(option);
+	}
+	animationSelector.onchange = function()
+	{
+		mesh.playAnimation(this.value, 12);
+	}
+	
+	Render();
+}
+
+function Render()
+{
+	requestAnimationFrame(Render);
+	mesh.updateAnimation(clock.getDelta() * 1000);
+	controls.update();
+	renderer.render(scene, camera);
+}
+		</script>
+	</head>
+	<body onload="Start()">
+	</body>
+</html>
