@@ -14,21 +14,44 @@ function Start()
 	document.body.appendChild(renderer.domElement);
 	clock = new THREE.Clock();
 	
-	model = new MD2Model("marine.md2");
-	geometry = model.GetGeometry();
-	geometry.computeFaceNormals();
-	geometry.computeBoundingSphere();
-	texture = THREE.ImageUtils.loadTexture("marine.png");
-	texture.needsUpdate = true;
-	material = new THREE.MeshBasicMaterial({map: texture, morphTargets: true,}); // Important: must set morphTargets to true
-	mesh = new THREE.MorphAnimMesh(geometry, material);
-	mesh.parseAnimations();
-	scene.add(mesh);
-	mesh.playAnimation(mesh.geometry.firstAnimation, 12);
-	
-	camera.position.copy(mesh.position);
-	camera.position.add(new THREE.Vector3(0, 75, 75));
-	camera.lookAt(mesh.position);
+	model = new MD2Model;
+	model.OnLoad = function()
+	{
+		geometry = model.GetGeometry();
+		geometry.computeFaceNormals();
+		geometry.computeBoundingSphere();
+		texture = THREE.ImageUtils.loadTexture("marine.png");
+		texture.needsUpdate = true;
+		material = new THREE.MeshBasicMaterial({map: texture, morphTargets: true,}); // Important: must set morphTargets to true
+		mesh = new THREE.MorphAnimMesh(geometry, material);
+		mesh.parseAnimations();
+		scene.add(mesh);
+		mesh.playAnimation(mesh.geometry.firstAnimation, 12);
+		
+		document.body.appendChild(document.createElement("br"));
+		label = document.body.appendChild(document.createElement("label"));
+		label.setAttribute("for", "animationSelector");
+		label.innerHTML = "Select animation:";
+		animationSelector = document.createElement("select");
+		animationSelector.setAttribute("id", "animationSelector");
+		document.body.appendChild(animationSelector);
+		for(var a in mesh.geometry.animations)
+		{
+			var option = document.createElement("option");
+			option.setAttribute("value", a);
+			option.innerHTML = a;
+			animationSelector.appendChild(option);
+		}
+		animationSelector.onchange = function()
+		{
+			mesh.playAnimation(this.value, 12);
+		}
+		
+		camera.position.copy(mesh.position);
+		camera.position.add(new THREE.Vector3(0, 75, 75));
+		camera.lookAt(mesh.position);
+	}
+	model.Load("marine.md2");
 	
 	controls = new THREE.TrackballControls(camera, renderer.domElement);
 	controls.rotateSpeed = 1.0;
@@ -40,32 +63,13 @@ function Start()
 	controls.dynamicDampingFactor = 0.3;
 	controls.keys = [65, 83, 68];
 	
-	document.body.appendChild(document.createElement("br"));
-	label = document.body.appendChild(document.createElement("label"));
-	label.setAttribute("for", "animationSelector");
-	label.innerHTML = "Select animation:";
-	animationSelector = document.createElement("select");
-	animationSelector.setAttribute("id", "animationSelector");
-	document.body.appendChild(animationSelector);
-	for(var a in mesh.geometry.animations)
-	{
-		var option = document.createElement("option");
-		option.setAttribute("value", a);
-		option.innerHTML = a;
-		animationSelector.appendChild(option);
-	}
-	animationSelector.onchange = function()
-	{
-		mesh.playAnimation(this.value, 12);
-	}
-	
 	Render();
 }
 
 function Render()
 {
 	requestAnimationFrame(Render);
-	mesh.updateAnimation(clock.getDelta() * 1000);
+	if(typeof mesh != "undefined") mesh.updateAnimation(clock.getDelta() * 1000);
 	controls.update();
 	renderer.render(scene, camera);
 }

@@ -61,18 +61,20 @@ function MD2Model(fileName)
 
 MD2Model.prototype.Load = function (url)
 {
-	// Code from https://developer.mozilla.org/En/Using_XMLHttpRequest#Receiving_binary_data
-	function LoadBinaryResource(url)
+	// Changed function for async file loading
+	var request = new XMLHttpRequest();
+	request.open('GET', url, true);
+	request.overrideMimeType('text/plain; charset=x-user-defined');
+	request.send(null);
+	request.md2 = this;
+	request.onreadystatechange = function()
 	{
-		var request = new XMLHttpRequest();
-		request.open('GET', url, false);
-		request.overrideMimeType('text/plain; charset=x-user-defined');
-		request.send(null);
-		if(request.status != 200) return '';
-		return request.responseText;
+		if((this.readyState == 4) && (this.status == 200)) this.md2.Parse(this.responseText);
 	}
-	
-	file = LoadBinaryResource(url);
+}
+
+MD2Model.prototype.Parse = function(file)
+{
 	var view = new jDataView(file, 0, file.length, true);	// Beware: MD2 format is little endian
 	
 	this.header.ID = view.getUint32();
@@ -168,6 +170,8 @@ MD2Model.prototype.Load = function (url)
 			this.skins.push(skin);
 		}
 	}
+	
+	if(typeof this.OnLoad == "function") this.OnLoad();
 }
 
 MD2Model.prototype.GetGeometry = function()
